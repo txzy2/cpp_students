@@ -110,9 +110,6 @@ int main() {
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed = end - start;
 
-	auto studyCount = std::count_if(students.begin(), students.end(),
-	                                [](const Student &s) { return s.getActivity() == Activity::STUDY; });
-
 	printSummary(students, start, end);
 
 	return 0;
