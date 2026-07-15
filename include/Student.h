@@ -4,12 +4,10 @@
 #include "InputReader.h"
 #include "StringHelper.h"
 
-#include <iterator>
-#include <print>
+#include <chrono>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-
-#include <chrono>
 
 /**
  * @brief Represents a student with name, age and activity type
@@ -80,8 +78,8 @@ class Student {
 
 		auto activityColor = activity == Activity::STUDY ? GREEN : RED;
 
-		std::println("{}[INFO]{} {} ID: {} -> Activity: {}{}{}", GREEN, RESET, std::format("{:%Y-%m-%d %X}", now),
-		             index == -1 ? "N/A" : std::to_string(index), activityColor, StringHelper::getEnumName(activity),
-		             RESET);
+		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now)
+		          << " ID: " << (index == -1 ? "N/A" : std::to_string(index)) << " -> Activity: " << activityColor
+		          << StringHelper::getEnumName(activity) << RESET << std::endl;
 	}
 };

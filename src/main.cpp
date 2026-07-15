@@ -2,8 +2,9 @@
 #include "Student.h"
 
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <json/json.h>
-#include <print>
 #include <string>
 #include <vector>
 
@@ -21,17 +22,17 @@ void studentInput(Student &student) {
 
 	student.setName(std::move(name));
 
-	std::println("Enter age (10-100):");
+	std::cout << "Enter age (10-100):" << std::endl;
 	for (;;) {
 		if (const auto result = readIntFromUser(); result.has_value()) {
 			try {
 				student.setAge(result.value());
 				break;
 			} catch (const std::invalid_argument &e) {
-				std::println("Error: {}. Please enter age between 10 and 100.", e.what());
+				std::cout << "Error: " << e.what() << ". Please enter age between 10 and 100." << std::endl;
 			}
 		} else {
-			std::println("Failed to read number. Try again.");
+			std::cout << "Failed to read number. Try again." << std::endl;
 		}
 	}
 }
@@ -50,12 +51,12 @@ std::vector<Student> loadStudentsFromJson(const std::string &filename) {
 	Json::Value json;
 	std::ifstream file(filename);
 	if (!file.is_open()) {
-		std::println("Could not open {}", filename);
+		std::cout << "Could not open " << filename << std::endl;
 		return students;
 	}
 
 	file >> json;
-	std::println("\nJSON is Loaded. Length: {}{}{}\n", GREEN, json.size(), RESET);
+	std::cout << "\nJSON is Loaded. Length: " << GREEN << json.size() << RESET << "\n" << std::endl;
 	file.close();
 
 	for (const auto &item : json) {
@@ -89,13 +90,15 @@ void printStudents(const std::vector<Student> &students) {
 }
 
 void printSummary(const std::vector<Student> &students, const auto &start, const auto &end) {
-	std::println("\n=== [INFO] ({:.4f}s) ===", std::chrono::duration<double>(end - start).count());
-	std::println("\n- Total students: {}", students.size());
-	std::println("- Study: {}", std::count_if(students.begin(), students.end(),
-	                                          [](const Student &s) { return s.getActivity() == Activity::STUDY; }));
-	std::println("- Exercise: {}\n", std::count_if(students.begin(), students.end(), [](const Student &s) {
-		             return s.getActivity() == Activity::EXERCISE;
-	             }));
+	std::cout << "\n=== [INFO] (" << std::fixed << std::setprecision(4)
+	          << std::chrono::duration<double>(end - start).count() << "s) ===" << std::endl;
+	std::cout << "\n- Total students: " << students.size() << std::endl;
+	std::cout << "- Study: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
+		return s.getActivity() == Activity::STUDY;
+	}) << std::endl;
+	std::cout << "- Exercise: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
+		return s.getActivity() == Activity::EXERCISE;
+	}) << "\n" << std::endl;
 }
 
 int main() {

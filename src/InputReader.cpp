@@ -1,12 +1,11 @@
 #include "InputReader.h"
 
 #include <iostream>
-#include <print>
 #include <stdexcept>
 #include <string>
 
 std::optional<int> readIntFromUser() {
-	std::print("Enter a number: ");
+	std::cout << "Enter a number: ";
 	std::string input;
 	std::cin >> input;
 
@@ -14,7 +13,7 @@ std::optional<int> readIntFromUser() {
 		int val = std::stoi(input);
 		return val;
 	} catch (const std::invalid_argument &e) {
-		std::println("Invalid input: {}", e.what());
+		std::cout << "Invalid input: " << e.what() << std::endl;
 		return std::nullopt;
 	}
 }
@@ -22,7 +21,7 @@ std::optional<int> readIntFromUser() {
 std::string readString(const std::string &paramName) {
 	std::string input;
 
-	std::print("Enter {}: ", paramName);
+	std::cout << "Enter " << paramName << ": ";
 	std::getline(std::cin, input);
 
 	return input;
