@@ -81,7 +81,7 @@ std::vector<Student> loadStudentsFromJson(const std::string &filename) {
  */
 void printStudents(const std::vector<Student> &students) {
 	for (int i = 0; i < students.size(); ++i) {
-		if (i % 100 == 0 || i == students.size() - 1) {
+		if (i % 1000 == 0 || i == students.size() - 1) {
 			students[i].print();
 		}
 	}
