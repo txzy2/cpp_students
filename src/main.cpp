@@ -7,6 +7,7 @@
 #include <iostream>
 #include <json/json.h>
 #include <string>
+#include <variant>
 #include <vector>
 
 #define FILENAME "students.json"
@@ -106,22 +107,45 @@ void printSummary(const std::vector<Student> &students,
 void getMenu() {
 	std::cout << "==== MENU ====" << "\n"
 	          << "1. Add Student" << "\n"
-	          << "2. Del Student" << "\n"
-	          << "3. Edit Student" << "\n"
+	          << "2. Find Student" << "\n"
+	          << "3. Del Student" << "\n"
+	          << "4. Edit Student" << "\n"
 	          << "0. Exit" << "\n"
 	          << "============\n";
 }
 
 void editMenu() {
 	std::cout << "==== EDIT MENU ====" << "\n"
-			  << "1. Edit Name" << "\n";
+	          << "1. Edit Name" << "\n";
+}
+
+const Student *findStudent(const std::vector<Student> &students) {
+	if (students.empty()) {
+		std::cout << "No students available." << std::endl;
+		return nullptr;
+	}
+
+	const int maxId = std::max_element(students.begin(), students.end(), [](const Student &a, const Student &b) {
+		                  return a.getId() < b.getId();
+	                  })->getId();
+
+	int id = readIntInRange("Enter student ID", 1, maxId);
+
+	auto it = std::ranges::find_if(students, [id](const Student &s) { return s.getId() == id; });
+
+	if (it != students.end()) {
+		return &(*it); // Возвращаем указатель на объект в векторе
+	}
+
+	std::cout << "\nStudent with ID " << id << " not found.\n" << std::endl;
+	return nullptr;
 }
 
 int workWithStudent(std::vector<Student> &students) {
 	for (;;) {
 		getMenu();
 
-		switch (readIntInRange("Choice", 0, 3)) {
+		switch (readIntInRange("Choice", 0, 4)) {
 		case 0:
 			return 0;
 		case 1: {
@@ -132,6 +156,15 @@ int workWithStudent(std::vector<Student> &students) {
 			students.push_back(newStudent);
 
 			printSummary(students);
+			break;
+		}
+		case 2: {
+			const Student *student = findStudent(students);
+			if (student != nullptr) {
+				std::cout << "\n" << GREEN << "Student is found" << RESET << "\n";
+				student->print();
+				std::cout << "\n";
+			}
 			break;
 		}
 		default:
