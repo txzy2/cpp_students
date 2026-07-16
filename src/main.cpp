@@ -159,8 +159,7 @@ int workWithStudent(std::vector<Student> &students) {
 			break;
 		}
 		case 2: {
-			const Student *student = findStudent(students);
-			if (student != nullptr) {
+			if (const Student *student = findStudent(students); student != nullptr) {
 				std::cout << "\n" << GREEN << "Student is found" << RESET << "\n";
 				student->print();
 				std::cout << "\n";
