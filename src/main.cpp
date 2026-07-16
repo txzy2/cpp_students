@@ -4,7 +4,8 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <json/json.h>
+#include <optional>
+#include <simdjson.h>
 #include <string>
 #include <vector>
 
@@ -42,34 +43,34 @@ void studentInput(Student &student, const int lastId) {
 std::vector<Student> loadStudentsFromJson(const std::string &filename) {
 	std::vector<Student> students;
 
-	Json::Value json;
 	std::ifstream file(filename);
 	if (!file.is_open()) {
 		std::cout << "Could not open " << filename << std::endl;
 		return students;
 	}
 
-	file >> json;
-	std::cout << "\nJSON is Loaded. Length: " << GREEN << json.size() << RESET << "\n" << std::endl;
+	std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	file.close();
 
-	// NOTE: Оптимизация чтобы при добавлении студента в другом месте не выделялось + 1000 сверху
-	students.reserve(json.size() + 10);
+	simdjson::dom::parser parser;
+	simdjson::dom::element json = parser.parse(contents);
 
-	for (const auto &item : json) {
+	for (const auto &item : json.get_array()) {
 		try {
 			Student s;
 
-			s.setName(item["name"].asString());
-			s.setAge(item["age"].asInt());
-			s.setActivity(static_cast<Activity>(item["activity"].asInt()));
-			s.setId(item["id"].asInt());
+			s.setName(std::string(item["name"].get_string().value()));
+			s.setAge(static_cast<int>(item["age"].get_int64().value()));
+			s.setActivity(static_cast<Activity>(item["activity"].get_int64().value()));
+			s.setId(static_cast<int>(item["id"].get_int64().value()));
 
 			students.push_back(std::move(s));
 		} catch (const std::exception &e) {
 			continue;
 		}
 	}
+
+	std::cout << "\nJSON is Loaded. Length: " << GREEN << students.size() << RESET << "\n" << std::endl;
 
 	return students;
 }
@@ -142,6 +143,15 @@ void editMenu() {
 	          << "1. Edit Name" << "\n";
 }
 
+int getMaxId(const std::vector<Student> &students) {
+	if (students.empty())
+		return 0;
+
+	return std::max_element(students.begin(), students.end(),
+	                        [](const Student &a, const Student &b) { return a.getId() < b.getId(); })
+	    ->getId();
+}
+
 /**
  * @brief Search for a student by ID in the given list
  *
@@ -157,9 +167,11 @@ const Student *findStudent(const std::vector<Student> &students) {
 		return nullptr;
 	}
 
-	const int maxId = std::max_element(students.begin(), students.end(), [](const Student &a, const Student &b) {
-		                  return a.getId() < b.getId();
-	                  })->getId();
+	int maxId = getMaxId(students);
+	if (maxId == 0) {
+		std::cout << "No students available." << std::endl;
+		return nullptr;
+	}
 
 	int id = readIntInRange("Enter student ID", 1, maxId);
 
@@ -168,8 +180,33 @@ const Student *findStudent(const std::vector<Student> &students) {
 			return &s;
 	}
 
-	std::cout << "\nStudent with ID " << id << " not found.\n" << std::endl;
+	std::cout << "\n" << RED << "Student with ID " << id << " not found." << RESET << "\n";
 	return nullptr;
+}
+
+bool deleteStudent(std::vector<Student> &students) {
+	if (students.empty()) {
+		std::cout << "No students available to delete." << std::endl;
+		return false;
+	}
+
+	int maxId = getMaxId(students);
+	if (maxId == 0) {
+		std::cout << "No students available." << std::endl;
+		return false;
+	}
+
+	int id = readIntInRange("Enter student ID to delete", 1, maxId);
+	auto it = std::find_if(students.begin(), students.end(), [id](const Student &s) { return s.getId() == id; });
+
+	if (it != students.end()) {
+		students.erase(it);
+		std::cout << "Student with ID " << id << " deleted." << std::endl;
+		return true;
+	}
+
+	std::cout << "\n" << RED << "Student with ID " << id << " not found." << RESET << "\n";
+	return false;
 }
 
 /**
@@ -204,6 +241,10 @@ int workWithStudent(std::vector<Student> &students) {
 				student->print();
 				std::cout << "\n";
 			}
+			break;
+		}
+		case 3: {
+			deleteStudent(students);
 			break;
 		}
 		default:

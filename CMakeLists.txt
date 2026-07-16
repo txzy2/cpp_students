@@ -6,16 +6,23 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+include(FetchContent)
+FetchContent_Declare(
+	simdjson
+	GIT_REPOSITORY https://github.com/simdjson/simdjson.git
+	GIT_TAG        v3.9.5
+)
+FetchContent_MakeAvailable(simdjson)
 
-include_directories(include ${JSONCPP_INCLUDE_DIRS})
+include_directories(include)
+
+add_compile_options(-Wno-deprecated-literal-operator)
 
 add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/InputReader.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${JSONCPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} simdjson::simdjson)
 
 file(COPY ${CMAKE_SOURCE_DIR}/students.json DESTINATION ${CMAKE_BINARY_DIR})
