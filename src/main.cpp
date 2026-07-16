@@ -104,32 +104,39 @@ void getMenu() {
 	std::cout << "==== MENU ====" << "\n" << "1. Add Student" << "\n" << "0. Exit" << "\n" << "============\n";
 }
 
-int main() {
-	const auto start = std::chrono::system_clock::now();
-	auto students = loadStudentsFromJson(FILENAME);
-	printStudents(students);
-	const auto end = std::chrono::system_clock::now();
-
-	printSummary(students, end - start);
-
+int workWithStudent(std::vector<Student> &students) {
 	for (;;) {
 		getMenu();
 
 		switch (readIntInRange("Choice", 0, 3)) {
-			case 0:
-				return 0;
-			case 1: {
-				Student newStudent;
-				studentInput(newStudent);
-				newStudent.print(students.size() + 1);
-				students.push_back(newStudent);
+		case 0:
+			return 0;
+		case 1: {
+			Student newStudent;
+			studentInput(newStudent);
+			newStudent.print(students.size() + 1);
+			students.push_back(newStudent);
 
-				printSummary(students);
-				break;
-			}
-			default:
-				std::cout << "\nInvalid choice. Please try again." << std::endl;
-				break;
+			printSummary(students);
+			break;
+		}
+		default:
+			std::cout << "\nInvalid choice. Please try again." << std::endl;
+			break;
 		}
 	}
+}
+
+int main() {
+	const auto start = std::chrono::system_clock::now();
+
+	auto students = loadStudentsFromJson(FILENAME);
+	printStudents(students);
+
+	const auto end = std::chrono::system_clock::now();
+	printSummary(students, end - start);
+
+	if (workWithStudent(students) == 0) {
+		return 0;
+	};
 }

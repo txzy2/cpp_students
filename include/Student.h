@@ -79,7 +79,8 @@ class Student {
 		const auto activityColor = activity == STUDY ? GREEN : RED;
 
 		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now)
-		          << " ID: " << (index == -1 ? "N/A" : std::to_string(index)) << " -> Activity: " << activityColor
+		          << " ID: " << (index == -1 ? "N/A" : std::to_string(index)) << " Name: " << name
+		          << " -> Activity: " << activityColor
 		          << StringHelper::getEnumName(activity) << RESET << std::endl;
 	}
 };
