@@ -16,10 +16,10 @@ public:
 	 * @return trimmed string
 	 */
 	static std::string trim(const std::string &str) {
-		const char *trimChars = " \t\n\r";
+		const auto trimChars = " \t\n\r";
 
-		size_t start = str.find_first_not_of(trimChars);
-		size_t end = str.find_last_not_of(trimChars);
+		const size_t start = str.find_first_not_of(trimChars);
+		const size_t end = str.find_last_not_of(trimChars);
 
 		return str.substr(start, end - start + 1);
 	}

@@ -14,7 +14,7 @@ const std::string RED = "\033[31m";
  *
  * @return integer value or std::nullopt on invalid input
  */
-std::optional<int> readIntFromUser();
+int readIntInRange(const std::string& prompt, const int min_value, const int max_value);
 
 /**
  * @brief Read a string from user input with a prompt

@@ -4,19 +4,28 @@
 #include <stdexcept>
 #include <string>
 
-std::optional<int> readIntFromUser() {
-	std::cout << "Enter a number: ";
-	std::string input;
-	std::cin >> input;
+/**
+ * @brief Read an integer within a specific range
+ */
+int readIntInRange(const std::string& prompt, const int min_value, const int max_value) {
+	std::cout << prompt << " (" << min_value << "-" << max_value << "): ";
 
-	try {
-		int val = std::stoi(input);
-		return val;
-	} catch (const std::invalid_argument &e) {
-		std::cout << "Invalid input: " << e.what() << std::endl;
-		return std::nullopt;
+	while (true) {
+		std::string input;
+		std::getline(std::cin, input);
+
+		try {
+			if (const int value = std::stoi(input); value >= min_value && value <= max_value) {
+				return value;
+			}
+			std::cout << "Error: Please enter a number between "
+					  << min_value << " and " << max_value << "." << std::endl;
+		} catch (const std::exception&) {
+			std::cout << "Error: Invalid number. Please try again." << std::endl;
+		}
 	}
 }
+
 
 std::string readString(const std::string &paramName) {
 	std::string input;

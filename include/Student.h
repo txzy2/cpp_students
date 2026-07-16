@@ -19,8 +19,8 @@ class Student {
 
 	static constexpr int MAX_AGE = 100;
 	static constexpr int MIN_AGE = 10;
-	static constexpr const char *ERROR_AGE_MSG = "Invalid age";
-	static constexpr const char *ERROR_ACTIVITY_MSG = "Invalid activity";
+	static constexpr auto ERROR_AGE_MSG = "Invalid age";
+	static constexpr auto ERROR_ACTIVITY_MSG = "Invalid activity";
 
   public:
 	/**
@@ -64,7 +64,7 @@ class Student {
 	 * @param activity activity type
 	 */
 	void setActivity(Activity activity) {
-		if (activity != Activity::STUDY && activity != Activity::EXERCISE) {
+		if (activity != STUDY && activity != EXERCISE) {
 			throw std::invalid_argument(ERROR_ACTIVITY_MSG);
 		}
 		this->activity = activity;
@@ -76,7 +76,7 @@ class Student {
 	void print(const int &index = -1) const {
 		auto now = std::chrono::system_clock::now();
 
-		auto activityColor = activity == Activity::STUDY ? GREEN : RED;
+		const auto activityColor = activity == STUDY ? GREEN : RED;
 
 		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now)
 		          << " ID: " << (index == -1 ? "N/A" : std::to_string(index)) << " -> Activity: " << activityColor

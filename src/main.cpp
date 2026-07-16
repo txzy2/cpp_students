@@ -1,6 +1,7 @@
 #include "InputReader.h"
 #include "Student.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -11,7 +12,7 @@
 #define FILENAME "students.json"
 
 /**
- * @brief Deprecated: Dynamic generation of students from input
+ * @brief
  */
 void studentInput(Student &student) {
 	std::string name;
@@ -19,22 +20,9 @@ void studentInput(Student &student) {
 	do {
 		name = readString("Name");
 	} while (name.empty());
-
 	student.setName(std::move(name));
 
-	std::cout << "Enter age (10-100):" << std::endl;
-	for (;;) {
-		if (const auto result = readIntFromUser(); result.has_value()) {
-			try {
-				student.setAge(result.value());
-				break;
-			} catch (const std::invalid_argument &e) {
-				std::cout << "Error: " << e.what() << ". Please enter age between 10 and 100." << std::endl;
-			}
-		} else {
-			std::cout << "Failed to read number. Try again." << std::endl;
-		}
-	}
+	student.setAge(readIntInRange("Enter age", 10, 100));
 }
 
 /**
@@ -43,7 +31,7 @@ void studentInput(Student &student) {
  * @param filename path to JSON file
  * @return vector of parsed students
  *
- * TODO: потом попробовать оптимизировать через потоки
+ * TODO: потом попробовать оптимизировать через потоки (Если будет 100МБ+)
  */
 std::vector<Student> loadStudentsFromJson(const std::string &filename) {
 	std::vector<Student> students;
@@ -59,15 +47,18 @@ std::vector<Student> loadStudentsFromJson(const std::string &filename) {
 	std::cout << "\nJSON is Loaded. Length: " << GREEN << json.size() << RESET << "\n" << std::endl;
 	file.close();
 
-	for (const auto &item : json) {
-		Student s;
+	// NOTE: Оптимизация чтобы при добавлении студента в другом месте не выделялось + 1000 сверху
+	students.reserve(json.size() + 10);
 
+	for (const auto &item : json) {
 		try {
+			Student s;
+
 			s.setName(item["name"].asString());
 			s.setAge(item["age"].asInt());
 			s.setActivity(static_cast<Activity>(item["activity"].asInt()));
 
-			students.push_back(s);
+			students.push_back(std::move(s));
 		} catch (const std::exception &e) {
 			continue;
 		}
@@ -89,28 +80,56 @@ void printStudents(const std::vector<Student> &students) {
 	}
 }
 
-void printSummary(const std::vector<Student> &students, const auto &start, const auto &end) {
-	std::cout << "\n=== [INFO] (" << std::fixed << std::setprecision(4)
-	          << std::chrono::duration<double>(end - start).count() << "s) ===" << std::endl;
+void printSummary(const std::vector<Student> &students,
+                  const std::optional<std::chrono::duration<double>> elapsed = std::nullopt) {
+
+	if (elapsed.has_value()) {
+		std::cout << "\n=== [INFO] (Parse time: " << std::fixed << std::setprecision(4)
+				  << elapsed.value().count() << "s) ===" << std::endl;
+	} else {
+		std::cout << "\n=== [INFO] ===" << std::endl;
+	}
+
 	std::cout << "\n- Total students: " << students.size() << std::endl;
 	std::cout << "- Study: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
-		return s.getActivity() == Activity::STUDY;
+		return s.getActivity() == STUDY;
 	}) << std::endl;
 	std::cout << "- Exercise: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
-		return s.getActivity() == Activity::EXERCISE;
+		return s.getActivity() == EXERCISE;
 	}) << "\n" << std::endl;
 }
 
-int main() {
-	auto start = std::chrono::system_clock::now();
 
+void getMenu() {
+	std::cout << "==== MENU ====" << "\n" << "1. Add Student" << "\n" << "0. Exit" << "\n" << "============\n";
+}
+
+int main() {
+	const auto start = std::chrono::system_clock::now();
 	auto students = loadStudentsFromJson(FILENAME);
 	printStudents(students);
+	const auto end = std::chrono::system_clock::now();
 
-	auto end = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed = end - start;
+	printSummary(students, end - start);
 
-	printSummary(students, start, end);
+	for (;;) {
+		getMenu();
 
-	return 0;
+		switch (readIntInRange("Choice", 0, 3)) {
+			case 0:
+				return 0;
+			case 1: {
+				Student newStudent;
+				studentInput(newStudent);
+				newStudent.print(students.size() + 1);
+				students.push_back(newStudent);
+
+				printSummary(students);
+				break;
+			}
+			default:
+				std::cout << "\nInvalid choice. Please try again." << std::endl;
+				break;
+		}
+	}
 }
