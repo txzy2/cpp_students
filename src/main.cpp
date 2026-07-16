@@ -1,19 +1,23 @@
 #include "InputReader.h"
 #include "Student.h"
 
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <json/json.h>
 #include <string>
-#include <variant>
 #include <vector>
 
 #define FILENAME "students.json"
 
 /**
- * @brief
+ * @brief Interactively read student data from user input
+ *
+ * Prompts the user for a name, age and assigns an ID to the student.
+ * Name must be non-empty, age must be between 10 and 100.
+ *
+ * @param student reference to student object to populate
+ * @param lastId  ID to assign to the new student
  */
 void studentInput(Student &student, const int lastId) {
 	std::string name;
@@ -82,9 +86,18 @@ void printStudents(const std::vector<Student> &students) {
 		}
 	}
 
-	std::cout << "=== END ===" << "\n";
+	std::cout << "\n" << "=== END ===" << "\n";
 }
 
+/**
+ * @brief Print summary statistics about students to stdout
+ *
+ * Displays total student count and a breakdown by activity type (STUDY / EXERCISE).
+ * Optionally shows the elapsed parse time if provided.
+ *
+ * @param students vector of students to summarize
+ * @param elapsed  optional duration of JSON parsing, displayed in seconds
+ */
 void printSummary(const std::vector<Student> &students,
                   const std::optional<std::chrono::duration<double>> elapsed = std::nullopt) {
 
@@ -104,21 +117,40 @@ void printSummary(const std::vector<Student> &students,
 	}) << "\n" << std::endl;
 }
 
+/**
+ * @brief Display the main menu options to stdout
+ *
+ * Prints available commands: Add, Find, Delete, Edit student, or Exit.
+ */
 void getMenu() {
 	std::cout << "==== MENU ====" << "\n"
 	          << "1. Add Student" << "\n"
-	          << "2. Find Student" << "\n"
-	          << "3. Del Student" << "\n"
+	          << "2. Find Student (By ID)" << "\n"
+	          << "3. Del Student (By ID)" << "\n"
 	          << "4. Edit Student" << "\n"
 	          << "0. Exit" << "\n"
 	          << "============\n";
 }
 
+/**
+ * @brief Display the edit submenu options to stdout
+ *
+ * Prints available edit commands for a selected student.
+ */
 void editMenu() {
 	std::cout << "==== EDIT MENU ====" << "\n"
 	          << "1. Edit Name" << "\n";
 }
 
+/**
+ * @brief Search for a student by ID in the given list
+ *
+ * Prompts the user to enter a student ID within the valid range.
+ * Returns a pointer to the found student, or nullptr if not found or list is empty.
+ *
+ * @param students vector of students to search
+ * @return const pointer to the found Student, or nullptr if not found
+ */
 const Student *findStudent(const std::vector<Student> &students) {
 	if (students.empty()) {
 		std::cout << "No students available." << std::endl;
@@ -131,16 +163,24 @@ const Student *findStudent(const std::vector<Student> &students) {
 
 	int id = readIntInRange("Enter student ID", 1, maxId);
 
-	auto it = std::ranges::find_if(students, [id](const Student &s) { return s.getId() == id; });
-
-	if (it != students.end()) {
-		return &(*it); // Возвращаем указатель на объект в векторе
+	for (auto &s : students) {
+		if (s.getId() == id)
+			return &s;
 	}
 
 	std::cout << "\nStudent with ID " << id << " not found.\n" << std::endl;
 	return nullptr;
 }
 
+/**
+ * @brief Main interaction loop for managing students
+ *
+ * Displays the menu and handles user choices: add, find, delete, or edit students.
+ * Loops until the user selects Exit (0).
+ *
+ * @param students reference to the vector of students to manage
+ * @return 0 when the user chooses to exit
+ */
 int workWithStudent(std::vector<Student> &students) {
 	for (;;) {
 		getMenu();
@@ -173,6 +213,14 @@ int workWithStudent(std::vector<Student> &students) {
 	}
 }
 
+/**
+ * @brief Program entry point
+ *
+ * Loads students from JSON, prints them, displays a summary with parse time,
+ * and enters the interactive management loop.
+ *
+ * @return 0 on success
+ */
 int main() {
 	const auto start = std::chrono::system_clock::now();
 
@@ -182,7 +230,5 @@ int main() {
 	const auto end = std::chrono::system_clock::now();
 	printSummary(students, end - start);
 
-	if (workWithStudent(students) == 0) {
-		return 0;
-	};
+	return workWithStudent(students);
 }
