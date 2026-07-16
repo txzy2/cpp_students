@@ -13,6 +13,7 @@
  * @brief Represents a student with name, age and activity type
  */
 class Student {
+	int id = 0;
 	std::string name;
 	int age = 0;
 	Activity activity = STUDY;
@@ -40,6 +41,8 @@ class Student {
 	 * @return activity type
 	 */
 	Activity getActivity() const { return activity; }
+
+	int getId() const { return id; }
 
 	/**
 	 * @brief Set student name (trims whitespace)
@@ -71,15 +74,21 @@ class Student {
 	}
 
 	/**
+	 * @brief Set Student id
+	 * @param id
+	 */
+	void setId(const int id) { this->id = id; }
+
+	/**
 	 * @brief Print student info to stdout
 	 */
-	void print(const int &index = -1) const {
+	void print() const {
 		auto now = std::chrono::system_clock::now();
 
 		const auto activityColor = activity == STUDY ? GREEN : RED;
 
 		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now)
-		          << " ID: " << (index == -1 ? "N/A" : std::to_string(index)) << " Name: " << name
+		          << " ID: " << id << " Name: " << name
 		          << " -> Activity: " << activityColor
 		          << StringHelper::getEnumName(activity) << RESET << std::endl;
 	}

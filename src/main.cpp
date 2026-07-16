@@ -14,13 +14,14 @@
 /**
  * @brief
  */
-void studentInput(Student &student) {
+void studentInput(Student &student, const int lastId) {
 	std::string name;
 
 	do {
 		name = readString("Name");
 	} while (name.empty());
 	student.setName(std::move(name));
+	student.setId(lastId);
 
 	student.setAge(readIntInRange("Enter age", 10, 100));
 }
@@ -57,6 +58,7 @@ std::vector<Student> loadStudentsFromJson(const std::string &filename) {
 			s.setName(item["name"].asString());
 			s.setAge(item["age"].asInt());
 			s.setActivity(static_cast<Activity>(item["activity"].asInt()));
+			s.setId(item["id"].asInt());
 
 			students.push_back(std::move(s));
 		} catch (const std::exception &e) {
@@ -74,18 +76,20 @@ std::vector<Student> loadStudentsFromJson(const std::string &filename) {
  */
 void printStudents(const std::vector<Student> &students) {
 	for (int i = 0; i < students.size(); ++i) {
-		if (i % 100 == 0) {
-			students[i].print(i);
+		if (i % 100 == 0 || i == students.size() - 1) {
+			students[i].print();
 		}
 	}
+
+	std::cout << "=== END ===" << "\n";
 }
 
 void printSummary(const std::vector<Student> &students,
                   const std::optional<std::chrono::duration<double>> elapsed = std::nullopt) {
 
 	if (elapsed.has_value()) {
-		std::cout << "\n=== [INFO] (Parse time: " << std::fixed << std::setprecision(4)
-				  << elapsed.value().count() << "s) ===" << std::endl;
+		std::cout << "\n=== [INFO] (Parse time: " << std::fixed << std::setprecision(4) << elapsed.value().count()
+		          << "s) ===" << std::endl;
 	} else {
 		std::cout << "\n=== [INFO] ===" << std::endl;
 	}
@@ -99,9 +103,18 @@ void printSummary(const std::vector<Student> &students,
 	}) << "\n" << std::endl;
 }
 
-
 void getMenu() {
-	std::cout << "==== MENU ====" << "\n" << "1. Add Student" << "\n" << "0. Exit" << "\n" << "============\n";
+	std::cout << "==== MENU ====" << "\n"
+	          << "1. Add Student" << "\n"
+	          << "2. Del Student" << "\n"
+	          << "3. Edit Student" << "\n"
+	          << "0. Exit" << "\n"
+	          << "============\n";
+}
+
+void editMenu() {
+	std::cout << "==== EDIT MENU ====" << "\n"
+			  << "1. Edit Name" << "\n";
 }
 
 int workWithStudent(std::vector<Student> &students) {
@@ -113,8 +126,9 @@ int workWithStudent(std::vector<Student> &students) {
 			return 0;
 		case 1: {
 			Student newStudent;
-			studentInput(newStudent);
-			newStudent.print(students.size() + 1);
+			studentInput(newStudent, students.back().getId() + 1);
+
+			newStudent.print();
 			students.push_back(newStudent);
 
 			printSummary(students);
