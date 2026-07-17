@@ -48,7 +48,8 @@ class Student {
 	 * @brief Set student name (trims whitespace)
 	 * @param name student name
 	 */
-	void setName(std::string name) { this->name = std::move(StringHelper::trim(name)); }
+
+	void setName(const std::string &name) { this->name = std::move(StringHelper::trim(name)); }
 
 	/**
 	 * @brief Set student age with validation
@@ -87,9 +88,8 @@ class Student {
 
 		const auto activityColor = activity == STUDY ? GREEN : RED;
 
-		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now)
-		          << " ID: " << id << " Name: " << name
-		          << " -> Activity: " << activityColor
-		          << StringHelper::getEnumName(activity) << RESET << std::endl;
+		std::cout << GREEN << "[INFO]" << RESET << " " << std::format("{:%Y-%m-%d %X}", now) << " ID: " << id
+		          << " Name: " << name << " -> Activity: " << activityColor << StringHelper::getEnumName(activity)
+		          << RESET << std::endl;
 	}
 };

@@ -1,4 +1,5 @@
 #include "InputReader.h"
+#include "Menus.h"
 #include "Student.h"
 
 #include <fstream>
@@ -87,7 +88,8 @@ void printStudents(const std::vector<Student> &students) {
 		}
 	}
 
-	std::cout << "\n" << "=== END ===" << "\n";
+	std::cout << "\n"
+	          << "=== END ===" << "\n";
 }
 
 /**
@@ -110,45 +112,19 @@ void printSummary(const std::vector<Student> &students,
 	}
 
 	std::cout << "\n- Total students: " << students.size() << std::endl;
-	std::cout << "- Study: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
+	std::cout << "- Study: " << std::ranges::count_if(students.begin(), students.end(), [](const Student &s) {
 		return s.getActivity() == STUDY;
 	}) << std::endl;
-	std::cout << "- Exercise: " << std::count_if(students.begin(), students.end(), [](const Student &s) {
+	std::cout << "- Exercise: " << std::ranges::count_if(students.begin(), students.end(), [](const Student &s) {
 		return s.getActivity() == EXERCISE;
 	}) << "\n" << std::endl;
-}
-
-/**
- * @brief Display the main menu options to stdout
- *
- * Prints available commands: Add, Find, Delete, Edit student, or Exit.
- */
-void getMenu() {
-	std::cout << "==== MENU ====" << "\n"
-	          << "1. Add Student" << "\n"
-	          << "2. Find Student (By ID)" << "\n"
-	          << "3. Del Student (By ID)" << "\n"
-	          << "4. Edit Student" << "\n"
-	          << "0. Exit" << "\n"
-	          << "============\n";
-}
-
-/**
- * @brief Display the edit submenu options to stdout
- *
- * Prints available edit commands for a selected student.
- */
-void editMenu() {
-	std::cout << "==== EDIT MENU ====" << "\n"
-	          << "1. Edit Name" << "\n";
 }
 
 int getMaxId(const std::vector<Student> &students) {
 	if (students.empty())
 		return 0;
 
-	return std::max_element(students.begin(), students.end(),
-	                        [](const Student &a, const Student &b) { return a.getId() < b.getId(); })
+	return std::ranges::max_element(students, [](const Student &a, const Student &b) { return a.getId() < b.getId(); })
 	    ->getId();
 }
 
@@ -167,13 +143,13 @@ const Student *findStudent(const std::vector<Student> &students) {
 		return nullptr;
 	}
 
-	int maxId = getMaxId(students);
+	const int maxId = getMaxId(students);
 	if (maxId == 0) {
 		std::cout << "No students available." << std::endl;
 		return nullptr;
 	}
 
-	int id = readIntInRange("Enter student ID", 1, maxId);
+	const int id = readIntInRange("Enter student ID", 1, maxId);
 
 	for (auto &s : students) {
 		if (s.getId() == id)
@@ -190,16 +166,16 @@ bool deleteStudent(std::vector<Student> &students) {
 		return false;
 	}
 
-	int maxId = getMaxId(students);
+	const int maxId = getMaxId(students);
 	if (maxId == 0) {
 		std::cout << "No students available." << std::endl;
 		return false;
 	}
 
 	int id = readIntInRange("Enter student ID to delete", 1, maxId);
-	auto it = std::find_if(students.begin(), students.end(), [id](const Student &s) { return s.getId() == id; });
 
-	if (it != students.end()) {
+	if (const auto it = std::ranges::find_if(students, [id](const Student &s) { return s.getId() == id; });
+	    it != students.end()) {
 		students.erase(it);
 		std::cout << "Student with ID " << id << " deleted." << std::endl;
 		return true;
